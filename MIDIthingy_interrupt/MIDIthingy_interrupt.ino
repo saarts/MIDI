@@ -1,8 +1,9 @@
 /*
  *
- * Created: 9/Nov/2018
+ * Created: 13/Nov/2018
  *
  */ 
+#define CHECK_BIT(var,pos) ((var) & (1<<(pos)))
 
 #include "MIDIUSB.h"
 
@@ -12,11 +13,6 @@
 // Velocity (64 = normal, 127 = fastest).
 // Control is the CC command number.
 
-char states[7];       //Array for current button states
-char prevstates[7];   //Array for previous button states
-uint16_t newmicro = 0;
-uint16_t oldmicro = 0;
-uint16_t bouncemicros = 50;
 
 //
 //void noteon(byte channel, byte pitch, byte velocity) {
@@ -32,12 +28,14 @@ uint16_t bouncemicros = 50;
 void programchange(byte channel, byte program) {
   midiEventPacket_t change = {0x0C, 0xC0 | channel, program};
   MidiUSB.sendMIDI(change);
+  MidiUSB.flush();
 }
 
 
 void controlchange(byte channel, byte control, byte value) {
   midiEventPacket_t event = {0x0B, 0xB0 | channel, control, value};
   MidiUSB.sendMIDI(event);
+  MidiUSB.flush();
 }
 
 
@@ -54,9 +52,9 @@ void setup() {
   // PB6 = D10    PCINT6
   // PB7 = D11    PCINT7
   
-  cli();                // turn off global interrupts  I-bit in the Status Register (SREG)
+                 // turn off global interrupts  I-bit in the Status Register (SREG)
   DDRB = B00000000;    //Port B inputs
-  PORTB = B11111111;   //Port B pullups
+  PORTB = B11111110;   //Port B pullups
 
   
   PCICR |= B00000001;    // turn on pin change interrupts  
@@ -66,13 +64,13 @@ void setup() {
 //Change Interrupt Request is executed from the PCI0 Interrupt Vector. PCINT7..0 pins are enabled individually
 //by the PCMSK0 Register.
 
-  PCMSK0 |= B01111111;  // Choose which pins output interrupt
+  PCMSK0 |= B11111110;  // Choose which pins output interrupt
 //Each PCINT7..0 bit selects whether pin change interrupt is enabled on the corresponding I/O pin. If PCINT7..0
 //is set and the PCIE0 bit in PCICR is set, pin change interrupt is enabled on the corresponding I/O pin. If
 //PCINT7..0 is cleared, pin change interrupt on the corresponding I/O pin is disabled.
 
   
-  sei();                 // turn on global interrupts  I-bit in the Status Register (SREG)
+                   // turn on global interrupts  I-bit in the Status Register (SREG)
 
 
   Serial.begin(115200);
@@ -91,80 +89,38 @@ void loop() {
 
 
 
-//Routine for PB0 pin change interrupt
-ISR(PCINT0_vect){                     
-
+//Routine for pin change interrupt
+ISR(PCINT0_vect){ 
 //IF button was pressed
-  if(~PINB & B00000001){
-    newmicro = micros();
-
-//IF debounce time has passed
-    if(newmicro - oldmicro > bouncemicros){
-       oldmicro = newmicro;
-       controlchange(0, 17, 100);
-       MidiUSB.flush();
-       Serial.println("PB0 send");
+uint8_t pinstates = PINB;
+  if(CHECK_BIT(pinstates, 1)){
+        if(CHECK_BIT(pinstates, 2)){
+                  if(CHECK_BIT(pinstates, 3)){
+                            if(CHECK_BIT(pinstates, 4)){
+                                      if(CHECK_BIT(pinstates, 5)){
+                                                if(CHECK_BIT(pinstates, 6)){
+                                                          if(CHECK_BIT(pinstates, 7)){
+    }else{
+      programchange(0, 3);
       }
-    Serial.println("PB0 press");
-    }
+    }else{
+      programchange(0, 2);
+      }
+    }else{
+      programchange(0, 1);
+      }
+    }else{
+      controlchange(0, 20, 100);
+      }
+    }else{
+      controlchange(0, 18, 100);
+      }
+    }else{
+      controlchange(0, 19, 100);
+      }
+    }else{
+      controlchange(0, 17, 100);
+      }
   }
 
-
-
-  //Routine for PB1 pin change interrupt
-ISR(PCINT1_vect){                     
-
-//IF button was pressed
-  if(~PINB & B00000010){
-    newmicro = micros();
-
-//IF debounce time has passed
-    if(newmicro - oldmicro > bouncemicros){
-       oldmicro = newmicro;
-       controlchange(0, 18, 100);
-       MidiUSB.flush();
-       Serial.println("PB1 send");
-      }
-    Serial.println("PB1 press");
-    }
-  }
-
-
-
-
-    //Routine for PB4 pin change interrupt
-ISR(PCINT4_vect){                     
-
-//IF button was pressed
-  if(~PINB & B00010000){
-    newmicro = micros();
-
-//IF debounce time has passed
-    if(newmicro - oldmicro > bouncemicros){
-      oldmicro = newmicro;
-       controlchange(0, 21, 100);
-       MidiUSB.flush();
-       Serial.println("PB4 send");   
-      }
-    Serial.println("PB4 press");
-    }
-  }
-
-
-      //Routine for PB4 pin change interrupt
-ISR(PCINT5_vect){                     
-
-//IF button was pressed
-  if(~PINB & B00100000){
-    newmicro = micros();
-
-//IF debounce time has passed
-    if(newmicro - oldmicro > bouncemicros){
-      oldmicro = newmicro;
-       controlchange(0, 22, 100);
-       MidiUSB.flush();
-       Serial.println("PB5 send");   
-      }
-    Serial.println("PB5 press");
-    }
-  }
+ 
