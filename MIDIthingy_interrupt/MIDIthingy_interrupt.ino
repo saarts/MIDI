@@ -81,9 +81,8 @@ void setup() {
 
 
 void loop() {
-  
   //TROLOLOLOOOO
-  
+  //Nothing to do here
 }
 
 
