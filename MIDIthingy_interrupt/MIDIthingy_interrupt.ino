@@ -43,7 +43,7 @@ void controlchange(byte channel, byte control, byte value) {
 void setup() {
 
   //Port B pins on micro
-  // PB0 = SS     PCINT0
+  // PB0 = SS     PCINT0   There is RX LED conneced to this pin, therefore I do not use it. One could remove it from the board.
   // PB1 = SCLK   PCINT1
   // PB2 = MOSI   PCINT2
   // PB3 = MISO   PCINT3
@@ -68,7 +68,7 @@ void setup() {
 //Each PCINT7..0 bit selects whether pin change interrupt is enabled on the corresponding I/O pin. If PCINT7..0
 //is set and the PCIE0 bit in PCICR is set, pin change interrupt is enabled on the corresponding I/O pin. If
 //PCINT7..0 is cleared, pin change interrupt on the corresponding I/O pin is disabled.
-
+//The 0 bit is 0, because of the RX LED.
   
                    // turn on global interrupts  I-bit in the Status Register (SREG)
 
@@ -90,8 +90,10 @@ void loop() {
 
 //Routine for pin change interrupt
 ISR(PCINT0_vect){ 
-//IF button was pressed
+  //Record current pin states on port B.
+  //If button is pressed, the pin is pulled LOW. For example, if pin 4 is pressed, PINB = 11101111
 uint8_t pinstates = PINB;
+  //Check pin state against bitshifted 1. Here the logic, is, when true, check the next one, if not, button is pressed.
   if(CHECK_BIT(pinstates, 1)){
         if(CHECK_BIT(pinstates, 2)){
                   if(CHECK_BIT(pinstates, 3)){
@@ -115,7 +117,7 @@ uint8_t pinstates = PINB;
       controlchange(0, 18, 100);
       }
     }else{
-      controlchange(0, 19, 100);
+      controlchange(0, 19, 100); // I messed up the connections on hardware level
       }
     }else{
       controlchange(0, 17, 100);
