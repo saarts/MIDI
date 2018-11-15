@@ -7,6 +7,9 @@
 
 #include "MIDIUSB.h"
 
+uint8_t pinstates = 0b11111110;
+uint8_t dowork = 0;
+
 // Event type (0x09 = note on, 0x08 = note off, 0x0B = control change CC, 0x0C = program change  ).
 // Channel can be anything between 0-15. Typically reported to the user as 1-16.
 // Pitch is the note number (48 = middle C).
@@ -81,8 +84,51 @@ void setup() {
 
 
 void loop() {
-  //TROLOLOLOOOO
-  //Nothing to do here
+
+
+if(dowork>0){
+  //If button is pressed, the pin is pulled LOW. For example, if pin 4 is pressed, PINB = 11101111
+  //Check pin state against bitshifted 1. Here the logic, is, when true, check the next one, if not, button is pressed.
+  if(pinstates & 0b00000010){
+        if(pinstates & 0b00000100){
+                  if(pinstates & 0b00001000){
+                            if(pinstates & 0b00010000){
+                                      if(pinstates & 0b00100000){
+                                                if(pinstates & 0b01000000){
+                                                          if(pinstates & 0b10000000){
+    }else{
+      programchange(0, 3);
+     // Serial.println(7);
+      }
+    }else{
+      programchange(0, 2);
+    //  Serial.println(6);
+      }
+    }else{
+      programchange(0, 1);
+    //  Serial.println(5);
+      }
+    }else{
+      controlchange(0, 20, 100);
+    //  Serial.println(4);
+      }
+    }else{
+      controlchange(0, 18, 100);
+    //  Serial.println(2);
+      }
+    }else{
+      controlchange(0, 19, 100); // I messed up the connections on hardware level
+    //  Serial.println(3);
+      }
+    }else{
+      controlchange(0, 17, 100);
+    //  Serial.println(1);
+      }
+      
+      //Work is done
+      dowork = 0; 
+}
+  
 }
 
 
@@ -90,38 +136,9 @@ void loop() {
 
 //Routine for pin change interrupt
 ISR(PCINT0_vect){ 
-  //Record current pin states on port B.
-  //If button is pressed, the pin is pulled LOW. For example, if pin 4 is pressed, PINB = 11101111
-uint8_t pinstates = PINB;
-  //Check pin state against bitshifted 1. Here the logic, is, when true, check the next one, if not, button is pressed.
-  if(CHECK_BIT(pinstates, 1)){
-        if(CHECK_BIT(pinstates, 2)){
-                  if(CHECK_BIT(pinstates, 3)){
-                            if(CHECK_BIT(pinstates, 4)){
-                                      if(CHECK_BIT(pinstates, 5)){
-                                                if(CHECK_BIT(pinstates, 6)){
-                                                          if(CHECK_BIT(pinstates, 7)){
-    }else{
-      programchange(0, 3);
-      }
-    }else{
-      programchange(0, 2);
-      }
-    }else{
-      programchange(0, 1);
-      }
-    }else{
-      controlchange(0, 20, 100);
-      }
-    }else{
-      controlchange(0, 18, 100);
-      }
-    }else{
-      controlchange(0, 19, 100); // I messed up the connections on hardware level
-      }
-    }else{
-      controlchange(0, 17, 100);
-      }
-  }
+//Record current pin states on port B.
+pinstates = PINB;
+//Flag for loop
+dowork = 1;
 
- 
+  }
