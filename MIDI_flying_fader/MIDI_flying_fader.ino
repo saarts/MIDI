@@ -1,7 +1,7 @@
 /*
  *
- * Created: 13/Nov/2018
- * Modified: 15/Nov/2018
+ * Created: 22/Dec/2018
+ * Modified: 24/Dec/2018
  * 
  * NB! this code is using arduino micro with Atmega32u4
  *
@@ -300,4 +300,3 @@ pinstates = PINB;
 dowork = 1;
 
   }
-
